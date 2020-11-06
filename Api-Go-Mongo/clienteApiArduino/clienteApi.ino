@@ -18,6 +18,7 @@ int led1Pin =  5; //D1
 #define STASSID "TP-Link_7150"
 #define STAPSK  "20860332"
 
+String estadoAnterior;
 
  
 void setup()
@@ -92,57 +93,61 @@ void loop()
     digitalWrite(led1Pin,HIGH);
     delay(500);
   }
+ 
+ //En esta condicion se evalua si ya existe un valor anterior igual al que se esta enviando 
+ if (estadoAnterior != estado){
+    Serial.println("El estado ha cambiado");
+    estadoAnterior = estado;
+    if ((WiFi.status() == WL_CONNECTED)) {
+     WiFiClient client;
+     HTTPClient http;
 
-  
-  if ((WiFi.status() == WL_CONNECTED)) {
-    WiFiClient client;
-    HTTPClient http;
-    
-    Serial.print("[HTTP] begin...\n");
+     Serial.print("[HTTP] begin...\n");
 
-    
 
-    http.begin("http://" SERVER_IP "/guardarData"); //HTTP
-    http.addHeader("Content-Type", "application/json");
 
-    //JSON
-    StaticJsonBuffer<200> jsonBuffer;
-    char json[256];
-    JsonObject& root = jsonBuffer.createObject();
-    root["estado"] = estado;
-    root.printTo(json, sizeof(json));
-    Serial.println(json);
-    //enviar paquete
-    int httpCode = http.POST(json);   //Send the request
-    //http.end();
+     http.begin("http://" SERVER_IP "/guardarData"); //HTTP
+     http.addHeader("Content-Type", "application/json");
 
-    /*StaticJsonDocument<200> doc;
-    // Add values in the document
-    doc["estado"] = estado;*/
+     //JSON
+     StaticJsonBuffer<200> jsonBuffer;
+     char json[256];
+     JsonObject& root = jsonBuffer.createObject();
+     root["estado"] = estado;
+     root.printTo(json, sizeof(json));
+     Serial.println(json);
+     //enviar paquete
+     int httpCode = http.POST(json);   //Send the request
+     //http.end();
 
-    /*serializeJson(doc, json);
-    Serial.print("Valor JSON---- ");
-    Serial.println(json);
-    // start connection and send HTTP header and body
-    int httpCode = http.POST(json);*/
+     /*StaticJsonDocument<200> doc;
+     // Add values in the document
+     doc["estado"] = estado;*/
 
-    if(httpCode > 0) {
-      // HTTP header has been send and Server response header has been handled
-      Serial.printf("[HTTP] Codigo del POST: %d\n", httpCode);
+     /*serializeJson(doc, json);
+     Serial.print("Valor JSON---- ");
+     Serial.println(json);
+     // start connection and send HTTP header and body
+     int httpCode = http.POST(json);*/
 
-      // file found at server
-      if (httpCode == HTTP_CODE_CREATED) {
-        const String& payload = http.getString();
-        Serial.println("received payload:\n<<");
-        Serial.println(payload);
-        Serial.println(">>");
-      }
-    } else {
-      //Serial.printf("[HTTP] POST... failed, error: %s\n", http.errorToString(httpCode).c_str());
-    }
+     if(httpCode > 0) {
+       // HTTP header has been send and Server response header has been handled
+       Serial.printf("[HTTP] Codigo del POST: %d\n", httpCode);
 
-    http.end();
-  }
+       // file found at server
+       if (httpCode == HTTP_CODE_CREATED) {
+         const String& payload = http.getString();
+         Serial.println("received payload:\n<<");
+         Serial.println(payload);
+         Serial.println(">>");
+       }
+     } else {
+       //Serial.printf("[HTTP] POST... failed, error: %s\n", http.errorToString(httpCode).c_str());
+     }
+     http.end();
+   }
+ }
+ Serial.println("El estado no ha cambiado. No se envía");
   
   delay(1000);
 
