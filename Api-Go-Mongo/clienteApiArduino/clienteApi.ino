@@ -94,9 +94,11 @@ void loop()
     delay(500);
   }
  
- //En esta condicion se evalua si ya existe un valor anterior igual al que se esta enviando 
+ //En esta condicion se evalua si ya existe un valor anterior igual al que se esta enviando
+ //Si ya existe uno no entra a enviar el POST
  if (estadoAnterior != estado){
     Serial.println("El estado ha cambiado");
+   //Se asigna el nuevo valor anterior
     estadoAnterior = estado;
     if ((WiFi.status() == WL_CONNECTED)) {
      WiFiClient client;
